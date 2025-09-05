@@ -1,0 +1,19 @@
+datasources:
+  - name: prometheus
+    type: prometheus
+    url: http://10.130.10.60:9090 # please use host ip not local host,
+    #url: http://localhost:9090 # please use host ip not local host,
+    access: proxy
+    isDefault: true
+
+  #- name: loki
+  #  type: loki
+  #  url: "http://loki:3100"
+  #  #url: http://10.130.22.89:9090
+  #  #url: http://127.20.10.9:9090
+  #  orgId: 1
+  #  basicAuth: false
+  #  version: 1
+  #  editable: true
+  #  access: proxy
+  #  isDefault: true

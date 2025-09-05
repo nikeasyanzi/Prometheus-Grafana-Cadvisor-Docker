@@ -1,0 +1,93 @@
+version: "3.8"
+services:
+  nginx:
+    image: nginx:latest
+    container_name: nginx
+    volumes:
+      - ./nginx/:/etc/nginx/conf.d
+    ports:
+      - 8082:8080
+
+  nginx-prometheus-exporter:
+    image: nginx/nginx-prometheus-exporter:1.4
+    container_name: nginx-prometheus-exporter
+    command: -nginx.scrape-uri http://nginx:8080/stub_status
+    ports:
+      - 9113:9113
+    depends_on:
+      - nginx
+
+  # System monitoring
+  node-exporter:
+    container_name: node-exporter
+    image: prom/node-exporter
+    ports:
+      - 9100:9100
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    volumes:
+      - ./prometheus.yaml:/etc/prometheus/prometheus.yaml
+      - ./prometheus_data:/prometheus
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yaml"
+    ports:
+      - "9090:9090"
+    depends_on:
+      - node-exporter
+      - nginx-prometheus-exporter
+
+  # Container monitoring
+  cadvisor:
+    container_name: cadvisor
+    image: gcr.io/cadvisor/cadvisor:latest
+    ports:
+      - "8080:8080"
+    privileged: true
+    # config for Linux
+    #volumes:
+    #- "/:/rootfs:ro"
+    #- "/var/run:/var/run:rw"
+    #- "/var/lib/docker/:/var/lib/docker"
+    #- "/sys:/sys:ro"
+    #- "/dev/disk/:/dev/disk"
+    # config for Mac M1
+    volumes:
+      #- "/etc/machine-id:/etc/machine-id:ro"
+      #- "/var/lib/dbus/machine-id:/var/lib/dbus/machine-id:ro"
+      - "/:/rootfs:ro"
+      - "/var/run:/var/run:ro"
+      #- "/var/run/docker.sock:/var/run/docker.sock:ro"
+      #- "/Users/craigyang/.docker/run/docker.sock:/Users/craigyang/.docker/run/docker.sock:ro"
+      - "/sys:/sys:ro"
+      - "/var/lib/docker/:/var/lib/docker:ro"
+      #- "/dev/disk/:/dev/disk:ro"
+    platform: linux/arm64/v8
+    devices:
+      - "/dev/kmsg"
+    #networks:
+    #  - localhost
+
+  renderer:
+    image: grafana/grafana-image-renderer:v4.0.11
+    platform: linux/arm64
+    environment:
+      BROWSER_TZ: Asia/Taipei
+    ports:
+      - "8081:8081"
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    volumes:
+      - ./grafana_data:/var/lib/grafana
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: pass
+      GF_RENDERING_SERVER_URL: http://renderer:8081/render
+      GF_RENDERING_CALLBACK_URL: http://grafana:3000/
+      GF_LOG_FILTERS: rendering:debug
+    depends_on:
+      - prometheus
+    ports:
+      - "3000:3000"

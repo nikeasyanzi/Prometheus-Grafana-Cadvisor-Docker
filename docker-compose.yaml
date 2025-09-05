@@ -1,0 +1,61 @@
+services:
+  nginx:
+    image: nginx:1.21.6
+    container_name: nginx
+    volumes:
+      - ./nginx/:/etc/nginx/conf.d
+    ports:
+      - 8082:8080
+
+  nginx-prometheus-exporter:
+    image: nginx/nginx-prometheus-exporter:1.4
+    container_name: nginx-prometheus-exporter
+    command: -nginx.scrape-uri http://nginx:8080/stub_status
+    ports:
+      - 9113:9113
+    depends_on:
+      - nginx
+
+  # System monitoring
+  node-exporter:
+    container_name: node-exporter
+    image: prom/node-exporter
+    ports:
+      - 9100:9100
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    volumes:
+      - ./prometheus.yaml:/etc/prometheus/prometheus.yaml
+      - ./prometheus_data:/prometheus
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yaml"
+    ports:
+      - "9090:9090"
+    depends_on:
+      - node-exporter
+      - nginx-prometheus-exporter
+
+  renderer:
+    image: grafana/grafana-image-renderer:v4.0.11
+    platform: linux/arm64
+    environment:
+      BROWSER_TZ: Asia/Taipei
+    ports:
+      - "8081:8081"
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    volumes:
+      - ./grafana_data:/var/lib/grafana
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: pass
+      GF_RENDERING_SERVER_URL: http://renderer:8081/render
+      GF_RENDERING_CALLBACK_URL: http://grafana:3000/
+      GF_LOG_FILTERS: rendering:debug
+    depends_on:
+      - prometheus
+    ports:
+      - "3000:3000"
