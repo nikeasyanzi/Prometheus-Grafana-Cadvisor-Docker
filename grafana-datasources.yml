@@ -1,7 +1,7 @@
 datasources:
   - name: prometheus
     type: prometheus
-    url: http://10.130.10.60:9090 # please use host ip not local host,
+    url: http://10.130.92.188:9090 # please use host ip not local host,
     #url: http://localhost:9090 # please use host ip not local host,
     access: proxy
     isDefault: true
