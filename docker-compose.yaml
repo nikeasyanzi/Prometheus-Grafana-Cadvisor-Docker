@@ -18,14 +18,15 @@ services:
 
   # System monitoring
   node-exporter:
-    container_name: node-exporter
+    container_name: node-exporter:v1.9.1
     image: prom/node-exporter
     ports:
       - 9100:9100
 
   prometheus:
-    image: prom/prometheus:latest
+    image: prom/prometheus:v3.6.0
     container_name: prometheus
+    user: root
     volumes:
       - ./prometheus.yaml:/etc/prometheus/prometheus.yaml
       - ./prometheus_data:/prometheus
@@ -37,16 +38,16 @@ services:
       - node-exporter
       - nginx-prometheus-exporter
 
-  renderer:
-    image: grafana/grafana-image-renderer:v4.0.11
-    platform: linux/arm64
-    environment:
-      BROWSER_TZ: Asia/Taipei
-    ports:
-      - "8081:8081"
+  #  renderer:
+  #    image: grafana/grafana-image-renderer:v4.0.11
+  #    platform: linux/arm64
+  #    environment:
+  #      BROWSER_TZ: Asia/Taipei
+  #    ports:
+  #      - "8081:8081"
 
   grafana:
-    image: grafana/grafana:latest
+    image: grafana/grafana:12.3.0-17962464148
     container_name: grafana
     ports:
       - "3000:3000"

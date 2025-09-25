@@ -18,14 +18,15 @@ services:
 
   # System monitoring
   node-exporter:
+    image: prom/node-exporter:v1.9.1
     container_name: node-exporter
-    image: prom/node-exporter
     ports:
       - 9100:9100
 
   prometheus:
-    image: prom/prometheus:latest
+    image: prom/prometheus:v3.6.0
     container_name: prometheus
+    user: root
     volumes:
       - ./prometheus.yaml:/etc/prometheus/prometheus.yaml
       - ./prometheus_data:/prometheus
@@ -40,30 +41,28 @@ services:
     # Container monitoring
   cadvisor:
     container_name: cadvisor
-    image: gcr.io/cadvisor/cadvisor:latest
+    image: gcr.io/cadvisor/cadvisor:v0.52.0
     ports:
       - "8080:8080"
     privileged: true
-    # config for Mac M1
     volumes:
       - "/:/rootfs:ro"
-      - "/var/run:/var/run:ro"
+      - "/var/run:/var/run:rw"
       - "/sys:/sys:ro"
       - "/var/lib/docker/:/var/lib/docker:ro"
       - "/var/run/docker.sock:/var/run/docker.sock:ro"
-      - "/dev/disk/:/dev/disk:ro"
     devices:
       - "/dev/kmsg"
 
-  renderer:
-    image: grafana/grafana-image-renderer:v4.0.11
-    environment:
-      BROWSER_TZ: Asia/Taipei
-    ports:
-      - "8081:8081"
+  #  renderer:
+  #    image: grafana/grafana-image-renderer:v4.0.11
+  #    environment:
+  #      BROWSER_TZ: Asia/Taipei
+  #    ports:
+  #      - "8081:8081"
 
   grafana:
-    image: grafana/grafana:latest
+    image: grafana/grafana:12.3.0-17962464148
     container_name: grafana
     ports:
       - "3000:3000"
