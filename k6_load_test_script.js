@@ -13,7 +13,7 @@ export const options = {
 // 測試腳本的主要邏輯
 export default function () {
   // 發送 GET 請求到目標 URL, Please use exported IP address
-  const res = http.get("http://10.130.79.90:8082/stub_status");
+  const res = http.get("http://10.122.168.81:8082/stub_status");
 
   // 驗證請求的響應狀態碼是否為 200
   const checkRes = check(res, {
